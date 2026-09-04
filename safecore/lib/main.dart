@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'pages/login.dart'; // Update the import to point to the correct LoginPage
 
 void main() {
   runApp(const MainApp());
@@ -9,12 +10,9 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
-      ),
+    return MaterialApp(
+      home:
+          LoginPage(), // This will now reference the LoginPage from login.dart
     );
   }
 }
