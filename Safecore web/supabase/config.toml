@@ -1,0 +1,11 @@
+# Configuração usada pelo Supabase CLI ao publicar as Edge Functions.
+project_id = "safecore"
+
+[functions.admin-users]
+# O token do usuário é validado DENTRO da função (auth.getUser + role 'admin'),
+# o que funciona tanto com chaves JWT legadas quanto com as novas chaves de assinatura.
+verify_jwt = false
+
+[functions.contact]
+# Pública: recebe mensagens do "Fale conosco" da landing page (com honeypot e limite por IP).
+verify_jwt = false

@@ -1,0 +1,22 @@
+import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+
+import 'app.dart';
+import 'services/supabase_service.dart';
+import 'shared/widgets/brand.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('pt_BR');
+  await BrandAssets.detect();
+
+  var configured = false;
+  Object? initError;
+  try {
+    configured = await SupabaseService.init();
+  } catch (e) {
+    initError = e;
+  }
+
+  runApp(SafeCoreApp(configured: configured, initError: initError));
+}

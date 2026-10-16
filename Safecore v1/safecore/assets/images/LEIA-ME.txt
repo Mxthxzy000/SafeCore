@@ -1,0 +1,7 @@
+Arquivos visuais opcionais do SafeCore
+
+Se voce tiver os arquivos originais do Figma, salve-os aqui com estes nomes:
+  logo.png        -> logo do escudo (fundo transparente, ideal 256x256)
+  industrial.png  -> ilustracao industrial do fundo do Login/Cadastro (PNG transparente)
+
+O app detecta os arquivos automaticamente. Sem eles, usa desenhos vetoriais equivalentes.
