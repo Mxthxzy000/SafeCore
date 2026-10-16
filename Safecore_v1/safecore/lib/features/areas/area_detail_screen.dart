@@ -6,6 +6,7 @@ import '../../models/area.dart';
 import '../../models/enums.dart';
 import '../../repositories/repositories.dart';
 import '../../routes/app_routes.dart';
+import '../../services/mqtt_service.dart';
 import '../../services/session_controller.dart';
 import '../../shared/widgets/action_timeline.dart';
 import '../../shared/widgets/async_states.dart';
@@ -94,6 +95,7 @@ class _AreaDetailScreenState extends State<AreaDetailScreen> {
       body: AsyncLoader<_AreaData>(
         key: _loaderKey,
         load: _load,
+        refresh: MqttService.instance,
         builder: (context, data, reload) => RefreshIndicator(
           onRefresh: reload,
           child: _AreaBody(data: data, reload: reload),
@@ -114,6 +116,7 @@ class _AreaBody extends StatelessWidget {
     final area = data.area;
     final style = area.status.style;
     final openAlerts = data.alerts.where((a) => !a.isResolved).toList();
+    final isBoiler = MqttService.isBoilerArea(area);
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
@@ -177,7 +180,12 @@ class _AreaBody extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        SectionHeader('Sensores (${area.sensors.length})', trailing: const SimulatedBadge()),
+        SectionHeader(
+          'Sensores (${area.sensors.length})',
+          trailing: SimulatedBadge(
+            text: isBoiler ? 'MQTT: quimex/caldeira' : 'Broker desconectado',
+          ),
+        ),
         if (area.sensors.isEmpty)
           const EmptyView(message: 'Nenhum sensor cadastrado nesta área.', icon: Icons.sensors_off)
         else

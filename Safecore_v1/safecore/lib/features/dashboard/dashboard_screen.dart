@@ -7,10 +7,10 @@ import '../../models/enums.dart';
 import '../../models/plant_summary.dart';
 import '../../repositories/repositories.dart';
 import '../../routes/app_routes.dart';
+import '../../services/mqtt_service.dart';
 import '../../services/session_controller.dart';
 import '../../shared/widgets/async_states.dart';
 import '../../shared/widgets/cards.dart';
-import '../../shared/widgets/feedback.dart';
 import '../../shared/widgets/safecore_app_bar.dart';
 import '../shell/main_shell.dart';
 
@@ -85,7 +85,7 @@ class _DashboardBody extends StatelessWidget {
         const SizedBox(height: 14),
         const SectionCard(title: 'Acesso Rápido', child: _QuickAccess()),
         const SizedBox(height: 14),
-        _SimulationCard(summary: summary, reload: reload),
+        _MqttStatusCard(summary: summary, reload: reload),
       ],
     );
   }
@@ -412,64 +412,66 @@ class _QuickAccess extends StatelessWidget {
   }
 }
 
-class _SimulationCard extends StatefulWidget {
-  const _SimulationCard({required this.summary, required this.reload});
+class _MqttStatusCard extends StatelessWidget {
+  const _MqttStatusCard({required this.summary, required this.reload});
 
   final PlantSummary summary;
   final Future<void> Function() reload;
 
   @override
-  State<_SimulationCard> createState() => _SimulationCardState();
-}
-
-class _SimulationCardState extends State<_SimulationCard> {
-  bool _running = false;
-
-  Future<void> _simulate() async {
-    setState(() => _running = true);
-    try {
-      final count = await Repos.sensors.simulateReadings();
-      if (!mounted) return;
-      showMessage(context, '$count leituras simuladas registradas.');
-      ShellScope.maybeOf(context)?.refreshAll();
-      await widget.reload();
-    } catch (e) {
-      if (mounted) showError(context, e);
-    } finally {
-      if (mounted) setState(() => _running = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final last = widget.summary.lastUpdate;
+    final mqtt = MqttService.instance;
+    final online = mqtt.isBoilerOnline;
+    final brokerOk = mqtt.isBrokerConnected;
+    final last = mqtt.lastTelemetry?.receivedAt ?? summary.lastUpdate;
+
     return AccentCard(
-      accent: AppColors.lightBlue,
+      accent: online ? AppColors.safe : (brokerOk ? AppColors.warning : AppColors.offline),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              SimulatedBadge(),
-              Spacer(),
+              Icon(
+                online ? Icons.sensors : (brokerOk ? Icons.cloud_sync_outlined : Icons.wifi_off_rounded),
+                size: 18,
+                color: online ? AppColors.safe : (brokerOk ? AppColors.warning : AppColors.offline),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  online
+                      ? 'Telemetria IoT Ativa — Quimex (Caldeira)'
+                      : (brokerOk
+                          ? 'Conectado ao Broker — Aguardando ESP32 (Caldeira)'
+                          : 'Reconectando ao Broker MQTT...'),
+                  style: const TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'As medições desta versão são simuladas para demonstração. '
-            'A estrutura já está pronta para receber leituras de dispositivos ESP32.'
-            '${last != null ? '\nÚltima leitura: ${Fmt.ago(last)}.' : ''}',
+            'Broker: ${MqttService.brokerHost}:${MqttService.brokerPort}\n'
+            'Sala ativa: ${MqttService.boilerBaseTopic} (Caldeira)\n'
+            'Demais setores: Desconectados (aguardando ativação de sala no broker).'
+            '${last != null ? '\nÚltima telemetria recebida: ${Fmt.ago(last)}.' : ''}',
             style: AppText.caption,
           ),
           const SizedBox(height: 8),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton.icon(
-              onPressed: _running ? null : _simulate,
-              icon: _running
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.play_circle_outline, size: 18),
-              label: const Text('Gerar leitura simulada'),
+              onPressed: () {
+                mqtt.connect();
+                reload();
+              },
+              icon: const Icon(Icons.sync, size: 18),
+              label: const Text('Sincronizar broker'),
             ),
           ),
         ],
@@ -477,3 +479,4 @@ class _SimulationCardState extends State<_SimulationCard> {
     );
   }
 }
+

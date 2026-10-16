@@ -6,6 +6,7 @@ import '../../models/area.dart';
 import '../../models/enums.dart';
 import '../../repositories/repositories.dart';
 import '../../routes/app_routes.dart';
+import '../../services/mqtt_service.dart';
 import '../../shared/widgets/async_states.dart';
 import '../../shared/widgets/cards.dart';
 import '../../shared/widgets/safecore_app_bar.dart';
@@ -22,6 +23,7 @@ class IndustrialMapScreen extends StatelessWidget {
       appBar: const SafeCoreAppBar(title: 'Mapa da Planta'),
       body: AsyncLoader<List<Area>>(
         load: Repos.areas.fetchAll,
+        refresh: MqttService.instance,
         builder: (context, areas, reload) => RefreshIndicator(
           onRefresh: reload,
           child: ListView(

@@ -5,6 +5,7 @@ import '../../core/theme/app_colors.dart';
 import '../../models/enums.dart';
 import '../../repositories/repositories.dart';
 import '../../routes/app_routes.dart';
+import '../../services/mqtt_service.dart';
 import '../../services/session_controller.dart';
 import '../alerts/alerts_screen.dart';
 import '../areas/areas_screen.dart';
@@ -52,7 +53,7 @@ class MainShellState extends State<MainShell> {
     _ticks[tab]!.fire();
   }
 
-  /// Recarrega todas as abas (ex.: após resolver um alerta).
+  /// Recarrega todas as abas (ex.: após resolver um alerta ou receber telemetria MQTT).
   void refreshAll() {
     for (final t in _ticks.values) {
       t.fire();
@@ -62,6 +63,7 @@ class MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    MqttService.instance.addListener(refreshAll);
     try {
       _channel = Repos.alerts.watchNew(_onNewAlert);
     } catch (_) {
@@ -95,6 +97,7 @@ class MainShellState extends State<MainShell> {
 
   @override
   void dispose() {
+    MqttService.instance.removeListener(refreshAll);
     final channel = _channel;
     if (channel != null) Repos.alerts.stopWatching(channel);
     for (final t in _ticks.values) {

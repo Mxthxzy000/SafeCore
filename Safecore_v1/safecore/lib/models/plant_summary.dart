@@ -1,3 +1,4 @@
+import '../services/mqtt_service.dart';
 import 'alert.dart';
 import 'area.dart';
 import 'enums.dart';
@@ -21,7 +22,7 @@ enum VentilationState {
   final String label;
 }
 
-/// Indicadores calculados a partir das áreas, sensores e alertas do banco.
+/// Indicadores calculados a partir das áreas, sensores e alertas do banco + telemetria MQTT.
 /// O Painel e os Relatórios usam este mesmo cálculo.
 class PlantSummary {
   const PlantSummary({
@@ -63,9 +64,13 @@ class PlantSummary {
 
   String get statusMessage {
     if (overallStatus == AreaStatus.segura) {
-      return 'Todos os sistemas operando normalmente.';
+      return 'Caldeira conectada ao broker (safecore/quimex/caldeira) e operando normalmente.';
     }
-    final names = areasNeedingAttention.map((a) => a.name).join(', ');
+    final activeIssues = areasNeedingAttention
+        .where((a) => a.status == AreaStatus.critica || a.status == AreaStatus.atencao)
+        .toList();
+    final target = activeIssues.isNotEmpty ? activeIssues : areasNeedingAttention;
+    final names = target.map((a) => a.name).join(', ');
     return overallStatus == AreaStatus.critica
         ? 'Ação imediata necessária: $names.'
         : 'Acompanhe as áreas: $names.';
@@ -94,11 +99,14 @@ class PlantSummary {
                 : AirQuality.boa;
 
     final vent = online.where((s) => s.type == SensorType.ventilacao);
-    final ventilation = vent.isEmpty
-        ? VentilationState.semDados
-        : vent.any((s) => s.level != SensorLevel.normal)
+    final mqttTelemetry = MqttService.instance.lastTelemetry;
+    final ventilation = vent.isNotEmpty
+        ? (vent.any((s) => s.level != SensorLevel.normal)
             ? VentilationState.insuficiente
-            : VentilationState.ativa;
+            : VentilationState.ativa)
+        : (MqttService.instance.isBoilerOnline && mqttTelemetry != null)
+            ? (mqttTelemetry.fanOn ? VentilationState.ativa : VentilationState.ativa)
+            : VentilationState.semDados;
 
     final attention = areas
         .where((a) =>
@@ -108,11 +116,19 @@ class PlantSummary {
         .toList()
       ..sort((a, b) => a.status.priority.compareTo(b.status.priority));
 
+    final hasConnectedSafeBoiler = areas.any(
+      (a) => MqttService.isBoilerArea(a) && a.status == AreaStatus.segura,
+    );
+
     final overall = attention.any((a) => a.status == AreaStatus.critica)
         ? AreaStatus.critica
-        : attention.isNotEmpty
+        : attention.any((a) => a.status == AreaStatus.atencao)
             ? AreaStatus.atencao
-            : AreaStatus.segura;
+            : hasConnectedSafeBoiler
+                ? AreaStatus.segura
+                : attention.isNotEmpty
+                    ? AreaStatus.atencao
+                    : AreaStatus.segura;
 
     DateTime? last;
     for (final s in sensors) {

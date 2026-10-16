@@ -1,9 +1,10 @@
 import '../core/utils/error_messages.dart';
 import '../models/alert.dart';
 import '../models/area.dart';
+import '../services/mqtt_service.dart';
 import '../services/supabase_service.dart';
 
-/// Ações simuladas disponíveis para uma área (sem atuador físico nesta versão).
+/// Ações disponíveis para uma área (com envio de comando MQTT para a Caldeira).
 enum AreaAction {
   ventilacao('Ativar ventilação'),
   isolamento('Isolar área'),
@@ -16,14 +17,16 @@ enum AreaAction {
 class AreaRepository {
   static const _select = '*, sensors(*)';
 
-  /// Áreas ativas visíveis para o usuário (o RLS oculta as restritas sem vínculo).
+  /// Áreas ativas visíveis para o usuário.
+  /// Apenas o setor da Caldeira permanece conectado (recebendo dados do broker MQTT `safecore/quimex/caldeira`);
+  /// todos os demais setores são exibidos como desconectados.
   Future<List<Area>> fetchAll() async {
     final rows = await SupabaseService.client
         .from('areas')
         .select(_select)
         .isFilter('archived_at', null)
         .order('name');
-    return rows.map(Area.fromMap).toList();
+    return rows.map(Area.fromMap).map(MqttService.instance.applyToArea).toList();
   }
 
   Future<Area> create(AreaInput input) async {
@@ -32,7 +35,7 @@ class AreaRepository {
         .insert(input.toMap())
         .select(_select)
         .single();
-    return Area.fromMap(row);
+    return MqttService.instance.applyToArea(Area.fromMap(row));
   }
 
   Future<void> update(String id, AreaInput input) async {
@@ -54,7 +57,7 @@ class AreaRepository {
 
   Future<Area> fetchById(String id) async {
     final row = await SupabaseService.client.from('areas').select(_select).eq('id', id).single();
-    return Area.fromMap(row);
+    return MqttService.instance.applyToArea(Area.fromMap(row));
   }
 
   Future<List<ActionLog>> fetchActions(String areaId, {int limit = 20}) async {
@@ -68,6 +71,7 @@ class AreaRepository {
   }
 
   Future<void> simulateAction(String areaId, AreaAction action, {String? alertId}) async {
+    MqttService.instance.publishCommand(action.name);
     await SupabaseService.client.rpc('simulate_area_action', params: {
       'p_area_id': areaId,
       'p_action': action.name,

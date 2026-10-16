@@ -6,6 +6,7 @@ import '../../models/enums.dart';
 import '../../models/sensor.dart';
 import '../../repositories/repositories.dart';
 import '../../routes/app_routes.dart';
+import '../../services/mqtt_service.dart';
 import '../../shared/widgets/async_states.dart';
 import '../../shared/widgets/cards.dart';
 import '../../shared/widgets/safecore_app_bar.dart';
@@ -49,6 +50,7 @@ class _SensorDetailScreenState extends State<SensorDetailScreen> {
       body: AsyncLoader<(Sensor, List<SensorReading>)>(
         key: _loaderKey,
         load: _load,
+        refresh: MqttService.instance,
         builder: (context, data, reload) {
           final (sensor, readings) = data;
           return RefreshIndicator(

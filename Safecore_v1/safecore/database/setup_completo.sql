@@ -1,21 +1,22 @@
 -- =====================================================================
--- SafeCore — INSTALAÇÃO COMPLETA (cole tudo no Supabase SQL Editor e clique em Run)
+-- SafeCore — INSTALAÇÃO COMPLETA UNIFICADA (cole tudo no Supabase SQL Editor e clique em Run)
 --
--- Para um banco NOVO. Se o banco já foi instalado antes, execute somente
--- migration_002_permissoes_crud.sql (preserva os dados).
---
--- Este arquivo junta, na ordem correta:
---   1. schema.sql                         (estrutura, regras e funções)
---   2. policies.sql                       (segurança RLS inicial)
---   3. migration_002_permissoes_crud.sql  (permissões por área, CRUD, auditoria, usuários demo)
---   4. seed.sql                           (dados FICTÍCIOS de demonstração)
+-- Este arquivo único junta TODOS os scripts do projeto (App Mobile, Painel Web e IoT MQTT)
+-- na ordem exata de execução:
+--   1. schema.sql                             (estrutura, regras e funções)
+--   2. policies.sql                           (segurança RLS inicial)
+--   3. migration_002_permissoes_crud.sql      (permissões por área, CRUD, auditoria, usuários demo)
+--   4. 003_painel_web_admin.sql               (suporte ao painel web administrativo)
+--   5. 004_fale_conosco.sql                   (tabela de mensagens do Fale Conosco da web)
+--   6. seed.sql                               (cadastro das áreas da Quimex, sensores e histórico)
+--   7. migration_003_mqtt_quimex_caldeira.sql (desativa simulação, desconecta outros setores e ativa Caldeira no MQTT)
 --
 -- Usuários de demonstração (senha de exemplo: Safecore@2026 — altere pelo app):
 --   admin@safecore.com    -> Administrador (todas as áreas)
 --   demo@safecore.com     -> Técnico de Segurança (gestão: Caldeira, Produção, Armazém)
 --   operador@safecore.com -> Operador (somente Produção; Laboratório é restrito)
 --
--- Pode ser executado novamente: recria os dados de demonstração e mantém os usuários.
+-- Pode ser executado novamente sem erros (idempotente).
 -- =====================================================================
 
 
@@ -2032,12 +2033,136 @@ select public.apply_demo_permissions();
 
 drop table if exists seed_specs;
 
--- Conferência rápida
-select a.name, a.status,
-       count(s.*) as sensores,
+
+-- #####################################################################
+-- 5. SUPORTE AO PAINEL WEB ADMINISTRATIVO (003_painel_web_admin.sql)
+-- #####################################################################
+
+alter table public.profiles add column if not exists active boolean not null default true;
+alter table public.profiles add column if not exists deactivated_at timestamptz;
+
+create index if not exists idx_profiles_role on public.profiles (role);
+
+create or replace function public.current_role_name()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select role from public.profiles where id = auth.uid() and active;
+$$;
+
+create or replace function public.protect_profile_role()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is not null then
+    if new.role is distinct from old.role
+       and not coalesce(public.current_role_name() = 'admin', false) then
+      raise exception 'Somente administradores podem alterar o papel do usuário.';
+    end if;
+
+    if new.active is distinct from old.active then
+      if not coalesce(public.current_role_name() = 'admin', false) then
+        raise exception 'Somente administradores podem ativar ou desativar contas.';
+      end if;
+      if new.id = auth.uid() then
+        raise exception 'Você não pode desativar a sua própria conta.';
+      end if;
+    end if;
+
+    if new.email is distinct from old.email then
+      new.email := old.email;
+    end if;
+  end if;
+
+  if new.active is distinct from old.active then
+    new.deactivated_at := case when new.active then null else now() end;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_profiles_protect_role on public.profiles;
+create trigger trg_profiles_protect_role
+  before update on public.profiles
+  for each row execute function public.protect_profile_role();
+
+
+-- #####################################################################
+-- 6. MENSAGENS DO FALE CONOSCO DA WEB (004_fale_conosco.sql)
+-- #####################################################################
+
+create table if not exists public.contact_messages (
+  id          bigint generated always as identity primary key,
+  name        text not null check (char_length(name) between 2 and 120),
+  email       text not null check (char_length(email) between 5 and 254),
+  company     text check (company is null or char_length(company) <= 120),
+  phone       text check (phone is null or char_length(phone) <= 30),
+  subject     text not null check (char_length(subject) between 2 and 80),
+  message     text not null check (char_length(message) between 10 and 4000),
+  ip_hash     text,
+  delivered   boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+create index if not exists idx_contact_messages_created on public.contact_messages (created_at desc);
+create index if not exists idx_contact_messages_ip on public.contact_messages (ip_hash, created_at desc);
+
+alter table public.contact_messages enable row level security;
+
+drop policy if exists contact_messages_admin_select on public.contact_messages;
+create policy contact_messages_admin_select on public.contact_messages
+  for select to authenticated using (public.is_admin());
+
+revoke all on public.contact_messages from anon;
+revoke insert, update, delete on public.contact_messages from authenticated;
+
+
+-- #####################################################################
+-- 7. INTEGRAÇÃO IoT MQTT — QUIMEX (SETOR CALDEIRA ATIVO, DEMAIS DESCONECTADOS)
+-- #####################################################################
+
+-- Desativa o modo de simulação em todos os sensores
+update public.sensors
+   set is_simulated = false;
+
+-- Todos os setores exceto Caldeira (CLD) ficam desconectados e sem valores simulados
+update public.sensors
+   set status = 'offline',
+       level = 'normal',
+       last_value = null,
+       last_reading_at = null
+ where area_id <> (select id from public.areas where code = 'CLD');
+
+update public.areas
+   set status = 'desconectada',
+       status_note = 'Setor desconectado do broker MQTT (safecore/quimex/' || lower(code) || ').'
+ where code <> 'CLD';
+
+-- Configura os sensores da Caldeira (CLD) com o device_id do ESP32 da Quimex
+update public.sensors
+   set device_id = 'quimex-caldeira-01',
+       status = 'online',
+       is_simulated = false
+ where area_id = (select id from public.areas where code = 'CLD');
+
+update public.areas
+   set status = 'segura',
+       status_note = 'Conectado ao broker MQTT (safecore/quimex/caldeira).'
+ where code = 'CLD';
+
+-- Conferência final das áreas e sensores
+select a.code, a.name, a.status,
+       count(s.*) as total_sensores,
+       count(s.*) filter (where s.status = 'online') as sensores_online,
        (select count(*) from public.alerts al where al.area_id = a.id and al.status <> 'resolvido') as alertas_ativos
 from public.areas a
 left join public.sensors s on s.area_id = a.id
 group by a.id
 order by a.name;
+
 
