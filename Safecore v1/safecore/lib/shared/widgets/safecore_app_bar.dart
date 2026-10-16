@@ -3,7 +3,14 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import 'brand.dart';
 
-/// Barra superior azul com a logo à esquerda e o título centralizado (Figma).
+/// Degradê azul-marinho usado nos cabeçalhos.
+const brandHeaderGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [AppColors.navy, AppColors.navyLight],
+);
+
+/// Barra superior em degradê com a logo e o título em caixa alta.
 class SafeCoreAppBar extends StatelessWidget implements PreferredSizeWidget {
   const SafeCoreAppBar({super.key, required this.title, this.actions, this.bottom});
 
@@ -19,7 +26,8 @@ class SafeCoreAppBar extends StatelessWidget implements PreferredSizeWidget {
     final canPop = Navigator.of(context).canPop();
     return AppBar(
       toolbarHeight: 64,
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.navy,
+      flexibleSpace: const DecoratedBox(decoration: BoxDecoration(gradient: brandHeaderGradient)),
       leadingWidth: canPop ? 96 : 64,
       leading: Row(
         mainAxisSize: MainAxisSize.min,
@@ -32,11 +40,12 @@ class SafeCoreAppBar extends StatelessWidget implements PreferredSizeWidget {
             )
           else
             const SizedBox(width: 14),
-          const SafeCoreLogoMark(size: 40),
+          const SafeCoreLogoBadge(size: 40),
         ],
       ),
-      title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
-      actions: actions ?? const [SizedBox(width: 64)],
+      titleSpacing: 12,
+      title: Text(title.toUpperCase(), maxLines: 1, overflow: TextOverflow.ellipsis),
+      actions: actions,
       bottom: bottom,
     );
   }
@@ -49,10 +58,25 @@ class BrandHeaderBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.primary,
+      decoration: const BoxDecoration(gradient: brandHeaderGradient),
       padding: EdgeInsets.only(top: MediaQuery.paddingOf(context).top + 10, bottom: 10),
       alignment: Alignment.center,
-      child: const SafeCoreLogoMark(size: 52),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SafeCoreLogoBadge(size: 48),
+          SizedBox(width: 12),
+          Text(
+            'SAFECORE',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.6,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

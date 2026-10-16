@@ -16,7 +16,7 @@ abstract final class Fmt {
   /// Casas decimais adequadas para cada unidade.
   static int decimalsFor(String unit) => switch (unit) {
         'bar' || 'm/s' || '%obs/m' => 2,
-        '%' => 0,
+        '%' || 'alertas' => 0,
         _ => 1,
       };
 

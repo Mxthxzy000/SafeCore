@@ -12,6 +12,7 @@ class AccentCard extends StatelessWidget {
     this.accent = AppColors.primary,
     this.onTap,
     this.padding = const EdgeInsets.all(14),
+    this.highlight = false,
   });
 
   final Widget child;
@@ -19,13 +20,17 @@ class AccentCard extends StatelessWidget {
   final VoidCallback? onTap;
   final EdgeInsetsGeometry padding;
 
+  /// Cartões mais importantes recebem uma sombra mais marcada.
+  final bool highlight;
+
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppTheme.radius),
-        boxShadow: AppTheme.cardShadow,
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.7)),
+        boxShadow: highlight ? AppTheme.highlightShadow : AppTheme.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
@@ -34,7 +39,7 @@ class AccentCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           child: Container(
-            decoration: BoxDecoration(border: Border(left: BorderSide(color: accent, width: 4))),
+            decoration: BoxDecoration(border: Border(left: BorderSide(color: accent, width: 3))),
             padding: padding,
             child: child,
           ),
@@ -52,16 +57,19 @@ class SectionCard extends StatelessWidget {
     required this.child,
     this.trailing,
     this.icon,
+    this.highlight = false,
   });
 
   final String title;
   final Widget child;
   final Widget? trailing;
   final IconData? icon;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     return AccentCard(
+      highlight: highlight,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -72,7 +80,7 @@ class SectionCard extends StatelessWidget {
                 const SizedBox(width: 6),
               ],
               Expanded(
-                child: Text(title, style: AppText.section),
+                child: Text(title.toUpperCase(), style: AppText.section),
               ),
               ?trailing,
             ],
@@ -185,7 +193,7 @@ class SimulatedBadge extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
           color: AppColors.lightBlue.withValues(alpha: 0.25),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -243,7 +251,7 @@ class SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         children: [
-          Expanded(child: Text(text, style: AppText.section.copyWith(fontSize: 15))),
+          Expanded(child: Text(text.toUpperCase(), style: AppText.section)),
           ?trailing,
         ],
       ),

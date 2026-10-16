@@ -9,7 +9,6 @@ import '../features/auth/register_screen.dart';
 import '../features/auth/reset_password_screen.dart';
 import '../features/employees/employee_detail_screen.dart';
 import '../features/employees/employees_screen.dart';
-import '../features/industrial_map/industrial_map_screen.dart';
 import '../features/occurrences/new_occurrence_screen.dart';
 import '../features/occurrences/occurrence_detail_screen.dart';
 import '../features/occurrences/occurrences_screen.dart';
@@ -26,7 +25,6 @@ abstract final class AppRoutes {
   static const areaDetail = '/area';
   static const areaNew = '/area/nova';
   static const areaEdit = '/area/editar';
-  static const industrialMap = '/mapa';
   static const sensors = '/sensores';
   static const sensorDetail = '/sensor';
   static const alertDetail = '/alerta';
@@ -49,7 +47,6 @@ abstract final class AppRoutes {
       areaDetail => AreaDetailScreen(areaId: args as String),
       areaNew => const AreaFormScreen(),
       areaEdit => AreaFormScreen(areaId: args as String),
-      industrialMap => const IndustrialMapScreen(),
       sensors => SensorsScreen(initialAreaId: args as String?),
       sensorDetail => SensorDetailScreen(sensorId: args as String),
       alertDetail => AlertDetailScreen(alertId: args as String),

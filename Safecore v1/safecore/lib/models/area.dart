@@ -10,10 +10,6 @@ class Area {
     required this.status,
     this.description,
     this.statusNote,
-    this.mapX = 0,
-    this.mapY = 0,
-    this.mapW = 0.2,
-    this.mapH = 0.2,
     this.sensors = const [],
     this.restricted = false,
     this.archivedAt,
@@ -26,10 +22,6 @@ class Area {
   final AreaStatus status;
   final String? description;
   final String? statusNote;
-  final double mapX;
-  final double mapY;
-  final double mapW;
-  final double mapH;
   final List<Sensor> sensors;
 
   /// Área restrita: visível somente para funcionários com vínculo.
@@ -48,10 +40,6 @@ class Area {
       status: AreaStatus.parse(map['status'] as String?),
       description: map['description'] as String?,
       statusNote: map['status_note'] as String?,
-      mapX: (map['map_x'] as num?)?.toDouble() ?? 0,
-      mapY: (map['map_y'] as num?)?.toDouble() ?? 0,
-      mapW: (map['map_w'] as num?)?.toDouble() ?? 0.2,
-      mapH: (map['map_h'] as num?)?.toDouble() ?? 0.2,
       sensors: rawSensors is List
           ? rawSensors.map((s) => Sensor.fromMap(Map<String, dynamic>.from(s as Map))).toList()
           : const [],

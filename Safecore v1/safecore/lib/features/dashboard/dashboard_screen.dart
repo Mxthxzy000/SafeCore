@@ -75,6 +75,7 @@ class _DashboardBody extends StatelessWidget {
         const SizedBox(height: 14),
         SectionCard(
           title: 'Resumo Geral',
+          highlight: true,
           child: _SummaryGrid(summary: summary),
         ),
         const SizedBox(height: 14),
@@ -107,16 +108,17 @@ class _PlantStatusCard extends StatelessWidget {
     };
     return SectionCard(
       title: 'Status Geral da Planta',
+      highlight: true,
       child: Material(
         color: style.background,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         child: InkWell(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(4),
           onTap: onTap,
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
               border: Border.all(color: style.color.withValues(alpha: 0.35)),
             ),
             child: Row(
@@ -220,10 +222,10 @@ class _Tile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.white,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
           decoration: BoxDecoration(
@@ -374,7 +376,6 @@ class _QuickAccess extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      (Icons.map_outlined, 'Mapa da planta', AppRoutes.industrialMap),
       (Icons.sensors, 'Sensores', AppRoutes.sensors),
       (Icons.campaign_outlined, 'Mural de avisos', AppRoutes.occurrences),
     ];

@@ -8,7 +8,13 @@ abstract final class AppText {
   static const title = TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.primary);
 
   /// Título de seção/cartão (ex.: "Resumo Geral").
-  static const section = TextStyle(fontSize: 14.5, fontWeight: FontWeight.w600, color: AppColors.slate);
+  /// Exibido em caixa alta, no estilo de painel industrial.
+  static const section = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    letterSpacing: 0.5,
+    color: AppColors.heading,
+  );
 
   /// Nome de item em listas (ex.: nome da área, do sensor).
   static const itemTitle = TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.slate);

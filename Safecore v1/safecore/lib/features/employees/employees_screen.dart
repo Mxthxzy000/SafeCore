@@ -108,7 +108,7 @@ class RoleChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         color: AppColors.lightBlue.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Text(role,
           style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600)),
