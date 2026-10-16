@@ -52,29 +52,14 @@ class _AreaFormState extends State<_AreaForm> {
   late String _type = widget.area?.type ?? 'producao';
   late AreaStatus _status = widget.area?.status ?? AreaStatus.segura;
   late bool _restricted = widget.area?.restricted ?? false;
-  late final _mapX = TextEditingController(text: _pct(widget.area?.mapX ?? 0.05));
-  late final _mapY = TextEditingController(text: _pct(widget.area?.mapY ?? 0.04));
-  late final _mapW = TextEditingController(text: _pct(widget.area?.mapW ?? 0.25));
-  late final _mapH = TextEditingController(text: _pct(widget.area?.mapH ?? 0.12));
   bool _saving = false;
-
-  static String _pct(double v) => (v * 100).round().toString();
 
   @override
   void dispose() {
-    for (final c in [_code, _name, _description, _note, _mapX, _mapY, _mapW, _mapH]) {
+    for (final c in [_code, _name, _description, _note]) {
       c.dispose();
     }
     super.dispose();
-  }
-
-  String? _percent(String? v, {bool size = false}) {
-    final n = int.tryParse((v ?? '').trim());
-    if (n == null) return 'Número de 0 a 100.';
-    if (size ? (n < 5 || n > 100) : (n < 0 || n > 95)) {
-      return size ? 'Entre 5 e 100.' : 'Entre 0 e 95.';
-    }
-    return null;
   }
 
   Future<void> _save() async {
@@ -83,7 +68,6 @@ class _AreaFormState extends State<_AreaForm> {
       showMessage(context, 'Revise os campos destacados.', error: true);
       return;
     }
-    double pct(TextEditingController c) => int.parse(c.text.trim()) / 100;
     final input = AreaInput(
       code: _code.text,
       name: _name.text,
@@ -92,10 +76,6 @@ class _AreaFormState extends State<_AreaForm> {
       description: _description.text,
       statusNote: _note.text,
       restricted: _restricted,
-      mapX: pct(_mapX),
-      mapY: pct(_mapY),
-      mapW: pct(_mapW),
-      mapH: pct(_mapH),
     );
     setState(() => _saving = true);
     try {
@@ -220,36 +200,6 @@ class _AreaFormState extends State<_AreaForm> {
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          SectionCard(
-            title: 'Posição no mapa da planta',
-            icon: Icons.map_outlined,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Valores em % da largura e altura do mapa (0 = canto superior esquerdo).',
-                  style: AppText.caption,
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(child: _numberField(_mapX, 'Horizontal (X)', size: false)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _numberField(_mapY, 'Vertical (Y)', size: false)),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(child: _numberField(_mapW, 'Largura', size: true)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _numberField(_mapH, 'Altura', size: true)),
-                  ],
-                ),
-              ],
-            ),
-          ),
           const SizedBox(height: 22),
           Center(
             child: ElevatedButton.icon(
@@ -269,12 +219,4 @@ class _AreaFormState extends State<_AreaForm> {
     );
   }
 
-  Widget _numberField(TextEditingController c, String label, {required bool size}) {
-    return TextFormField(
-      controller: c,
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(labelText: label, suffixText: '%'),
-      validator: (v) => _percent(v, size: size),
-    );
-  }
 }

@@ -38,12 +38,12 @@ class AlertCard extends StatelessWidget {
           const SizedBox(height: 4),
           Row(
             children: [
-              const Icon(Icons.location_on_outlined, size: 15, color: AppColors.warning),
+              const Icon(Icons.location_on_outlined, size: 15, color: AppColors.accentBlue),
               const SizedBox(width: 3),
               Flexible(
                 child: Text(
                   alert.areaName,
-                  style: const TextStyle(fontSize: 12.5, color: AppColors.warning, fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontSize: 12.5, color: AppColors.accentBlue, fontWeight: FontWeight.w500),
                 ),
               ),
               if (alert.isManual) ...[

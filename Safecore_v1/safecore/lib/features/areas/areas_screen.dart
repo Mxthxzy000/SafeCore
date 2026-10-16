@@ -54,17 +54,7 @@ class _AreasScreenState extends State<AreasScreen> {
               label: const Text('Nova área'),
             )
           : null,
-      appBar: SafeCoreAppBar(
-        title: 'Áreas de Monitoramento',
-        actions: [
-          IconButton(
-            tooltip: 'Mapa da planta',
-            icon: const Icon(Icons.map_outlined),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.industrialMap),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: const SafeCoreAppBar(title: 'Áreas de Monitoramento'),
       body: AsyncLoader<List<Area>>(
         load: Repos.areas.fetchAll,
         refresh: widget.refresh,

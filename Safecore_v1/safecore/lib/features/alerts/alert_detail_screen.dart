@@ -159,7 +159,7 @@ class _AlertInfo extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: AppColors.safeBg,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(4),
               ),
               child: Text('Solução: ${alert.resolutionNote}', style: const TextStyle(fontSize: 13)),
             ),

@@ -90,10 +90,6 @@ class AreaInput {
     this.description,
     this.statusNote,
     this.restricted = false,
-    this.mapX = 0.05,
-    this.mapY = 0.04,
-    this.mapW = 0.25,
-    this.mapH = 0.12,
   });
 
   final String code;
@@ -103,10 +99,6 @@ class AreaInput {
   final String? description;
   final String? statusNote;
   final bool restricted;
-  final double mapX;
-  final double mapY;
-  final double mapW;
-  final double mapH;
 
   Map<String, dynamic> toMap() => {
         'code': code.trim().toUpperCase(),
@@ -116,9 +108,5 @@ class AreaInput {
         'description': (description ?? '').trim().isEmpty ? null : description!.trim(),
         'status_note': (statusNote ?? '').trim().isEmpty ? null : statusNote!.trim(),
         'restricted': restricted,
-        'map_x': mapX,
-        'map_y': mapY,
-        'map_w': mapW,
-        'map_h': mapH,
       };
 }

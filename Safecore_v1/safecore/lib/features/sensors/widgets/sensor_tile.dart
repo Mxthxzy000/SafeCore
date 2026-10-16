@@ -36,7 +36,7 @@ class SensorTile extends StatelessWidget {
             height: 38,
             decoration: BoxDecoration(
               color: sensor.type.color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(4),
             ),
             child: Icon(sensor.type.icon, color: sensor.type.color, size: 22),
           ),

@@ -50,7 +50,7 @@ class DateTimeField extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () => _pick(context),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: InputDecorator(
         decoration: const InputDecoration(suffixIcon: Icon(Icons.event_outlined)),
         child: Text(formatted, style: const TextStyle(fontSize: 14)),

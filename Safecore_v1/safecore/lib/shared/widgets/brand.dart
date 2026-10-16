@@ -1,7 +1,23 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+
+/// Logo em PNG (para documentos como o PDF de relatórios). Usa
+/// `assets/images/logo.png` se existir; senão, desenha o logo vetorial.
+Future<Uint8List> safeCoreLogoPng({double size = 192}) async {
+  if (BrandAssets.hasLogo) {
+    final data = await rootBundle.load(BrandAssets.logoPath);
+    return data.buffer.asUint8List();
+  }
+  final recorder = ui.PictureRecorder();
+  _LogoPainter().paint(Canvas(recorder), Size.square(size));
+  final image = await recorder.endRecording().toImage(size.round(), size.round());
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  return bytes!.buffer.asUint8List();
+}
 
 /// Arquivos oficiais opcionais. Se existirem em `assets/images/`, substituem
 /// os desenhos vetoriais abaixo (ver assets/images/LEIA-ME.txt).
@@ -39,6 +55,30 @@ class SafeCoreLogoMark extends StatelessWidget {
     return Semantics(
       label: 'Logo SafeCore',
       child: CustomPaint(size: Size.square(size), painter: _LogoPainter()),
+    );
+  }
+}
+
+/// Logo sobre um selo branco, para manter o contraste no cabeçalho escuro.
+class SafeCoreLogoBadge extends StatelessWidget {
+  const SafeCoreLogoBadge({super.key, this.size = 40});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    // Sem o arquivo oficial, o desenho vetorial (branco) já contrasta com o fundo.
+    if (!BrandAssets.hasLogo) return SafeCoreLogoMark(size: size);
+    return Container(
+      width: size,
+      height: size,
+      padding: EdgeInsets.all(size * 0.1),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 1))],
+      ),
+      child: SafeCoreLogoMark(size: size * 0.8),
     );
   }
 }
@@ -117,16 +157,19 @@ class SafeCoreWordmark extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text.rich(
-            TextSpan(children: [
-              TextSpan(text: 'Safe', style: TextStyle(color: AppColors.primary)),
-              TextSpan(text: 'Core', style: TextStyle(color: AppColors.green)),
-            ]),
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.5,
-              height: 1,
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Safe',
+                  style: TextStyle(color: AppColors.primary),
+                ),
+                TextSpan(
+                  text: 'Core',
+                  style: TextStyle(color: AppColors.green),
+                ),
+              ],
             ),
+            style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800, letterSpacing: -0.5, height: 1),
           ),
           const SizedBox(height: 3),
           Text(
@@ -153,10 +196,11 @@ class IndustrialIllustration extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final child = BrandAssets.hasIllustration
-        ? Image.asset(BrandAssets.illustrationPath, fit: BoxFit.contain,
-            alignment: Alignment.bottomRight)
+        ? Image.asset(BrandAssets.illustrationPath, fit: BoxFit.contain, alignment: Alignment.bottomRight)
         : CustomPaint(painter: _IndustrialPainter(), size: Size.infinite);
-    return IgnorePointer(child: Opacity(opacity: opacity, child: child));
+    return IgnorePointer(
+      child: Opacity(opacity: opacity, child: child),
+    );
   }
 }
 

@@ -242,13 +242,6 @@ class ProfileScreen extends StatelessWidget {
                     style: TextStyle(color: AppColors.critical, fontWeight: FontWeight.w600)),
               ),
             ),
-            const SizedBox(height: 18),
-            const Text(
-              'SafeCore v1.0 • Projeto de conclusão de curso — SENAI\n'
-              'Dados de sensores simulados para demonstração.',
-              textAlign: TextAlign.center,
-              style: AppText.caption,
-            ),
           ],
         ),
       ),
@@ -341,7 +334,7 @@ class _EditableRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onEdit,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(

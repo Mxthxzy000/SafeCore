@@ -5,15 +5,20 @@ import 'app_colors.dart';
 /// Tema único do aplicativo: cores, tipografia, cartões, campos e botões.
 abstract final class AppTheme {
   /// Raio dos cartões.
-  static const radius = 12.0;
+  static const radius = 6.0;
 
   /// Raio de botões, campos, etiquetas internas e blocos dentro de cartões.
-  static const radiusSmall = 8.0;
+  static const radiusSmall = 4.0;
 
   /// Sombra suave padrão dos cartões (duas camadas discretas).
   static const cardShadow = [
-    BoxShadow(color: Color(0x142F4858), blurRadius: 14, offset: Offset(0, 4)),
-    BoxShadow(color: Color(0x0F2F4858), blurRadius: 3, offset: Offset(0, 1)),
+    BoxShadow(color: Color(0x120F2541), blurRadius: 8, offset: Offset(0, 2)),
+  ];
+
+  /// Sombra reforçada para os cartões de destaque (status da planta, resumos).
+  static const highlightShadow = [
+    BoxShadow(color: Color(0x260F2541), blurRadius: 16, offset: Offset(0, 6)),
+    BoxShadow(color: Color(0x140F2541), blurRadius: 3, offset: Offset(0, 1)),
   ];
 
   /// Sombra mais leve para blocos internos (ex.: indicadores do painel).
@@ -41,12 +46,13 @@ abstract final class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
-        centerTitle: true,
+        centerTitle: false,
         elevation: 0,
         titleTextStyle: TextStyle(
           color: AppColors.white,
           fontSize: 16,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.8,
         ),
       ),
       cardTheme: CardThemeData(
@@ -82,12 +88,12 @@ abstract final class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.green,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 1,
           minimumSize: const Size(120, 44),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusSmall)),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700, letterSpacing: 0.4),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -101,8 +107,9 @@ abstract final class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
           minimumSize: const Size(0, 40),
-          side: const BorderSide(color: AppColors.border),
+          side: const BorderSide(color: AppColors.primary, width: 1.2),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusSmall)),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
@@ -115,11 +122,15 @@ abstract final class AppTheme {
         labelStyle: const TextStyle(fontSize: 12, color: AppColors.slate),
         secondaryLabelStyle: const TextStyle(fontSize: 12, color: AppColors.white),
         checkmarkColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusSmall)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: AppColors.white,
-        indicatorColor: AppColors.lightBlue.withValues(alpha: 0.35),
+        indicatorColor: AppColors.primary.withValues(alpha: 0.12),
+        indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radiusSmall)),
+        surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shadowColor: const Color(0x330F2541),
         height: 64,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
@@ -152,6 +163,12 @@ abstract final class AppTheme {
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
+        // Botões "Nova área", "Novo alerta" e "Novo relato" um pouco menores
+        extendedSizeConstraints: const BoxConstraints.tightFor(height: 44),
+        extendedPadding: const EdgeInsets.symmetric(horizontal: 14),
+        extendedIconLabelSpacing: 6,
+        extendedTextStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        iconSize: 20,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: SegmentedButton.styleFrom(
